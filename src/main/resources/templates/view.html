@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- 1. Spring Security CSRF Meta Tags 추가 -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <title>LogLive - 다이어리 상세</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #120e24;
+            --bg-card: rgba(26, 22, 48, 0.8);
+            --purple-main: #9d4edd;
+            --purple-light: #c77dff;
+            --pink-accent: #ff007f;
+            --teal-accent: #00f5d4;
+            --text-main: #f8f9fa;
+            --text-sub: #b8c0e0;
+            --border-color: rgba(157, 78, 221, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(157, 78, 221, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(0, 245, 212, 0.1) 0%, transparent 40%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        .page-title {
+            text-align: center;
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: var(--text-main);
+        }
+
+        .page-title span {
+            color: var(--pink-accent);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group.full {
+            grid-column: span 2;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--purple-light);
+            margin-bottom: 8px;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(18, 14, 36, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        input[type="text"]:disabled,
+        textarea:disabled {
+            opacity: 0.75;
+            background: rgba(18, 14, 36, 0.3);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            border-color: var(--pink-accent);
+            box-shadow: 0 0 12px rgba(255, 0, 127, 0.3);
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.25s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--purple-main), var(--pink-accent));
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 0, 127, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 127, 0.5);
+        }
+
+        .btn-danger {
+            background: rgba(255, 0, 127, 0.2);
+            border: 1px solid var(--pink-accent);
+            color: #ff85c0;
+        }
+
+        .btn-danger:hover {
+            background: var(--pink-accent);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-sub);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(157, 78, 221, 0.2);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        #tr_btn_modify {
+            display: none;
+        }
+    </style>
+    <script th:inline="javascript">
+        function backToList() {
+            location.href = /*[[@{/diary/list}]]*/ "/diary/list";
+        }
+
+        function fn_enable() {
+            document.querySelector("#i_title").disabled = false;
+            document.querySelector("#i_content").disabled = false;
+            document.querySelector("#tr_btn").style.display = "none";
+            document.querySelector("#tr_btn_modify").style.display = "flex";
+        }
+
+        function fn_modify_article(frm) {
+            frm.action = /*[[@{/diary/edit}]]*/ "";
+            frm.submit();
+        }
+
+        // 2. CSRF 토큰을 동적으로 Form에 동봉하도록 수정된 fn_remove
+        function fn_remove(url, no) {
+            if (confirm("정말 삭제하시겠습니까?")) {
+                let form = document.createElement("form");
+                form.setAttribute("method", "post");
+                form.setAttribute("action", url);
+                
+                // 다이어리 ID 번호 전달
+                let inputNo = document.createElement("input");
+                inputNo.setAttribute("type", "hidden");
+                inputNo.setAttribute("name", "diaryNo");
+                inputNo.setAttribute("value", no);
+                form.appendChild(inputNo);
+
+                // CSRF 토큰 읽어와서 동적 hidden input 추가
+                let csrfToken = document.querySelector("meta[name='_csrf']")?.getAttribute("content");
+                if (csrfToken) {
+                    let inputCsrf = document.createElement("input");
+                    inputCsrf.setAttribute("type", "hidden");
+                    inputCsrf.setAttribute("name", "_csrf");
+                    inputCsrf.setAttribute("value", csrfToken);
+                    form.appendChild(inputCsrf);
+                }
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="page-title">LIVE <span>LOG</span></h1>
+
+        <form name="articleForm" method="post" th:action="@{/diary/edit}">
+            <input type="hidden" th:value="${diary.id}" name="id" />
+
+            <div class="info-grid">
+                <div class="form-group">
+                    <label>글 번호</label>
+                    <input type="text" th:value="${diary.id}" disabled />
+                </div>
+                <div class="form-group">
+                    <label>작성자</label>
+                    <input type="text" th:value="${diary.user?.username}" disabled /> <!--[cite: 1] -->
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>제목</label>
+                <input type="text" th:value="${diary.title}" name="title" id="i_title" disabled />
+            </div>
+
+            <div class="info-grid">
+                <div class="form-group">
+                    <label>이벤트 명</label>
+                    <input type="text" th:value="${diary.event?.name}" disabled />
+                </div>
+                <div class="form-group">
+                    <label>공연장 (회장)</label>
+                    <input type="text" th:value="${diary.event?.venue?.name}" disabled />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>내용</label>
+                <textarea rows="10" name="content" id="i_content" disabled th:text="${diary.content}"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>작성일시</label>
+                <input type="text" th:value="${#temporals.format(diary.writeDate, 'yyyy-MM-dd HH:mm')}" disabled />
+            </div>
+
+            <th:block th:with="currentUsername=${#authentication.name}">
+                <!-- 작성자 본인 제어 버튼 -->
+                <div class="btn-group" id="tr_btn" th:if="${diary.user != null and diary.user.username == currentUsername}"> <!--[cite: 1] -->
+                    <button type="button" class="btn btn-primary" onclick="fn_enable()">수정</button>
+                    <button type="button" class="btn btn-danger" th:onclick="|fn_remove('@{/diary/remove}', '${diary.id}')|">삭제</button>
+                    <button type="button" class="btn btn-secondary" onclick="backToList()">목록보기</button>
+                </div>
+
+                <!-- 타인 조회 시 버튼 -->
+                <div class="btn-group" th:unless="${diary.user != null and diary.user.username == currentUsername}"> <!--[cite: 1] -->
+                    <button type="button" class="btn btn-secondary" onclick="backToList()">목록보기</button>
+                </div>
+            </th:block>
+
+            <!-- 수정용 버튼 -->
+            <div class="btn-group" id="tr_btn_modify">
+                <button type="button" class="btn btn-primary" onclick="fn_modify_article(articleForm)">저장</button>
+                <button type="button" class="btn btn-secondary" onclick="location.reload()">취소</button>
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>

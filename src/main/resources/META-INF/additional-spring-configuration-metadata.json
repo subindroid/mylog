@@ -1,0 +1,9 @@
+{
+  "properties": [
+    {
+      "name": "kakao.api.key",
+      "type": "java.lang.String",
+      "description": "Kakao API Key for Maps SDK."
+    }
+  ]
+}

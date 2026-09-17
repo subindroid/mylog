@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogLive - 다이어리 작성</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #120e24;
+            --bg-card: rgba(26, 22, 48, 0.8);
+            --purple-main: #9d4edd;
+            --purple-light: #c77dff;
+            --pink-accent: #ff007f;
+            --teal-accent: #00f5d4;
+            --text-main: #f8f9fa;
+            --text-sub: #b8c0e0;
+            --border-color: rgba(157, 78, 221, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(157, 78, 221, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 245, 212, 0.1) 0%, transparent 40%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        .page-title {
+            text-align: center;
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: var(--text-main);
+        }
+
+        .page-title span {
+            color: var(--teal-accent);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--purple-light);
+            margin-bottom: 8px;
+        }
+
+        .sub-desc {
+            font-size: 12px;
+            color: var(--text-sub);
+            margin-top: -4px;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(18, 14, 36, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        textarea:focus,
+        select:focus {
+            border-color: var(--teal-accent);
+            box-shadow: 0 0 12px rgba(0, 245, 212, 0.3);
+        }
+
+        .map-box {
+            width: 100%;
+            height: 320px;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .selected-box {
+            margin-top: 10px;
+            padding: 12px 16px;
+            background: rgba(157, 78, 221, 0.1);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 13px;
+        }
+
+        .selected-box strong {
+            color: var(--purple-light);
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.25s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--purple-main), var(--teal-accent));
+            color: #120e24;
+            box-shadow: 0 4px 15px rgba(0, 245, 212, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 245, 212, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-sub);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(157, 78, 221, 0.2);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* 날짜 피커 커스텀 테마 조정 */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.8);
+            cursor: pointer;
+        }
+    </style>
+
+    <!-- 카카오 지도 SDK (Thymeleaf로 동적 주입) -->
+<script type="text/javascript" th:src="'//dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoApiKey} + '&libraries=services'"></script>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="page-title">다이어리 <span>작성</span></h1>
+
+        <form th:action="@{/diary/add}" method="post">
+            <!-- 제목 -->
+            <div class="form-group">
+                <label for="title">제목</label>
+                <input type="text" id="title" name="title" required placeholder="다이어리 제목을 입력하세요">
+            </div>
+
+            <!-- 공연장(회장) 영역 -->
+            <div class="form-group">
+                <label>공연장 선택</label>
+                <p class="sub-desc">* 지도 위 마커를 클릭하여 등록된 회장을 선택하거나, 아래에 직접 입력해 주세요.</p>
+
+                <div id="map" class="map-box"></div>
+
+                <div class="selected-box">
+                    <strong>지도에서 선택된 회장:</strong>
+                    <span id="selectedVenueName" style="color: var(--teal-accent); font-weight: bold;">선택 안 됨</span>
+                    <span id="selectedVenueAddress" style="color: var(--text-sub);"></span>
+                </div>
+
+                <input type="hidden" id="venueId" name="venueId" value="">
+
+                <div style="margin-top: 15px;">
+                    <label for="customVenue">직접 입력</label>
+                    <input type="text" id="customVenue" name="customVenue" placeholder="지도에 없는 공연장 이름을 직접 입력해 주세요" oninput="clearSelectedVenue()">
+                </div>
+            </div>
+
+            <!-- 이벤트 선택 섹션 -->
+            <div class="form-group">
+                <label>이벤트 선택</label>
+                <p class="sub-desc">* 날짜를 선택하면 해당 날짜에 열린 이벤트 목록이 조회됩니다[cite: 1].</p>
+
+                <input type="date" id="eventDatePicker" onchange="fetchEventsByDate(this.value)">
+
+                <div style="margin-top: 10px;">
+                    <select id="eventSelect" onchange="onSelectEvent(this)">
+                        <option value="">-- 날짜를 먼저 선택하세요 --</option>
+                    </select>
+                </div>
+
+                <input type="hidden" id="eventId" name="eventId" value="">
+            </div>
+
+            <!-- 내용 -->
+            <div class="form-group">
+                <label for="content">내용</label>
+                <textarea id="content" name="content" rows="10" required placeholder="공연 레포 및 현장의 추억을 작성하세요"></textarea>
+            </div>
+
+            <!-- 제출/취소 버튼 -->
+            <div class="btn-group">
+                <button type="submit" class="btn btn-primary">저장하기</button>
+                <a th:href="@{/diary/list}" class="btn btn-secondary">취소</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        let map;
+        let markers = [];
+
+        window.onload = function () {
+            if (typeof kakao === 'undefined' || !kakao.maps) {
+                alert("카카오 지도 SDK를 불러올 수 없습니다.");
+                return;
+            }
+
+            kakao.maps.load(function () {
+                const container = document.getElementById('map');
+                const options = {
+                    center: new kakao.maps.LatLng(37.5665, 126.9780),
+                    level: 7
+                };
+
+                map = new kakao.maps.Map(container, options);
+                loadVenues();
+            });
+        };
+
+        function loadVenues() {
+            fetch('/api/venues')
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(venue => {
+                        displayMarker(venue);
+                    });
+                })
+                .catch(error => console.error('회장 목록 로딩 중 오류:', error));
+        }
+
+        function displayMarker(venue) {
+            const markerPosition = new kakao.maps.LatLng(venue.latitude, venue.longitude);
+
+            const marker = new kakao.maps.Marker({
+                map: map,
+                position: markerPosition
+            });
+
+            const infowindow = new kakao.maps.InfoWindow({
+                content: `<div style="padding:5px;font-size:12px;color:#120e24;"><b>${venue.name}</b></div>`
+            });
+
+            kakao.maps.event.addListener(marker, 'click', function () {
+                selectVenue(venue.id, venue.name, venue.address);
+                infowindow.open(map, marker);
+            });
+
+            markers.push(marker);
+        }
+
+        function selectVenue(id, name, address) {
+            document.getElementById('venueId').value = id;
+            document.getElementById('selectedVenueName').innerText = name;
+            document.getElementById('selectedVenueAddress').innerText = address ? ` (${address})` : '';
+            document.getElementById('customVenue').value = '';
+        }
+
+        function clearSelectedVenue() {
+            document.getElementById('venueId').value = '';
+            document.getElementById('selectedVenueName').innerText = '선택 안 됨 (직접 입력 사용 중)';
+            document.getElementById('selectedVenueAddress').innerText = '';
+        }
+
+        function fetchEventsByDate(selectedDate) {
+            const selectBox = document.getElementById('eventSelect');
+            const hiddenEventId = document.getElementById('eventId');
+
+            hiddenEventId.value = '';
+            selectBox.innerHTML = '<option value="">이벤트를 불러오는 중...</option>';
+
+            if (!selectedDate) {
+                selectBox.innerHTML = '<option value="">-- 날짜를 먼저 선택하세요 --</option>';
+                return;
+            }
+
+            fetch(`/api/events?date=${selectedDate}`)
+                .then(response => response.json())
+                .then(events => {
+                    selectBox.innerHTML = '';
+
+                    if (events.length === 0) {
+                        selectBox.innerHTML = '<option value="">해당 날짜에 등록된 이벤트가 없습니다</option>';
+                        return;
+                    }
+
+                    selectBox.innerHTML = '<option value="">-- 이벤트를 선택하세요 --</option>';
+                    events.forEach(evt => {
+                        const venueInfo = evt.venueName ? ` (${evt.venueName})` : '';
+                        const option = document.createElement('option');
+                        option.value = evt.id;
+                        option.text = `${evt.name}${venueInfo}`;
+                        selectBox.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('이벤트 로딩 에러:', error);
+                    selectBox.innerHTML = '<option value="">이벤트 불러오기 실패</option>';
+                });
+        }
+
+        function onSelectEvent(selectElement) {
+            document.getElementById('eventId').value = selectElement.value;
+        }
+    </script>
+</body>
+
+</html>
