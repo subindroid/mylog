@@ -30,6 +30,6 @@ public class UserController {
     public String logout(HttpServletRequest request, HttpServletResponse response) {
         new SecurityContextLogoutHandler().logout(request, response,
                 SecurityContextHolder.getContext().getAuthentication());
-        return "redirect:/diary/list";
+        return "redirect:/diary/listDiary";
     }
 }

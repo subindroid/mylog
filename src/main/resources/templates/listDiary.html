@@ -42,7 +42,7 @@
                         <td th:text="${diaryStat.count}">1</td>
                         <td th:text="${diary.user?.username}">작성자</td>
                         <td>
-                            <a class="article-title-link" th:href="@{/diary/view(no=${diary.id})}" th:text="${diary.title}">
+                            <a class="article-title-link" th:href="@{/diary/viewDiary(no=${diary.id})}" th:text="${diary.title}">
                                 다이어리 제목입니다.
                             </a>
                         </td>

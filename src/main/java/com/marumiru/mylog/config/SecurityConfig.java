@@ -58,7 +58,7 @@ public class SecurityConfig {
                 .formLogin(frm -> frm
                         .loginPage("/diary/login")
                         .loginProcessingUrl("/diary/login") // POST 로그인 처리 URL 명시
-                        .defaultSuccessUrl("/diary/list", true))
+                        .defaultSuccessUrl("/diary/listDiary", true))
 
                 .logout(logout -> logout
                         .logoutUrl("/diary/logout")

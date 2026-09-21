@@ -35,17 +35,17 @@ public class DiaryController {
     @Value("${kakao.api.key}")
     private String kakaoApiKey;
 
-    @GetMapping({ "/list", "/" })
+    @GetMapping({ "/listDiary", "/" })
     public String getDiaryList(Model model) {
         List<Diary> diaries = diaryService.listDiaries();
         model.addAttribute("dataList", diaries);
-        return "list";
+        return "listDiary";
     }
 
-    @GetMapping("/view")
+    @GetMapping("/viewDiary")
     public ModelAndView viewDiary(@RequestParam Long no) {
         Diary diary = diaryService.viewDiary(no);
-        ModelAndView mv = new ModelAndView("view");
+        ModelAndView mv = new ModelAndView("viewDiary");
         mv.addObject("diary", diary);
         return mv;
     }
@@ -93,7 +93,7 @@ public class DiaryController {
         }
 
         diaryService.addDiary(diary);
-        return "redirect:/diary/list";
+        return "redirect:/diary/listDiary";
     }
 
     // 수정 처리 (본인 검증)
@@ -111,12 +111,12 @@ public class DiaryController {
 
         // 본인 작성글인지 2차 보안 검증 (User PK 비교)
         if (diary.getUser() == null || !diary.getUser().getId().equals(currentUser.getId())) {
-            return "redirect:/diary/list";
+            return "redirect:/diary/listDiary";
         }
 
         diaryService.editDiary(id, title, content);
         redirectAttr.addAttribute("no", id);
-        return "redirect:/diary/view";
+        return "redirect:/diary/viewDiary";
     }
 
     // 삭제 처리 (본인 검증)
@@ -131,10 +131,10 @@ public class DiaryController {
 
         // 본인 작성글인지 2차 보안 검증[cite: 1]
         if (diary.getUser() == null || !diary.getUser().getId().equals(currentUser.getId())) {
-            return "redirect:/diary/list";
+            return "redirect:/diary/listDiary";
         }
 
         diaryService.removeDiary(diaryNo);
-        return "redirect:/diary/list";
+        return "redirect:/diary/listDiary";
     }
 }
