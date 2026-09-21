@@ -119,22 +119,37 @@ public class DiaryController {
         return "redirect:/diary/viewDiary";
     }
 
-    // 삭제 처리 (본인 검증)
+    // DiaryController.java 내부 removeDiary & editDiary 메서드 수정 예시
+
     @PostMapping("/remove")
-    public String removeDiary(@RequestParam Long diaryNo,
+    public String removeDiary(@RequestParam(value = "diaryNo", required = false) Long diaryNo,
+            @RequestParam(value = "id", required = false) Long id,
             @AuthenticationPrincipal User currentUser) {
+
         if (currentUser == null) {
             return "redirect:/diary/login";
         }
 
-        Diary diary = diaryService.viewDiary(diaryNo);
-
-        // 본인 작성글인지 2차 보안 검증[cite: 1]
-        if (diary.getUser() == null || !diary.getUser().getId().equals(currentUser.getId())) {
+        Long targetId = (diaryNo != null) ? diaryNo : id;
+        if (targetId == null) {
             return "redirect:/diary/listDiary";
         }
 
-        diaryService.removeDiary(diaryNo);
+        Diary diary = diaryService.viewDiary(targetId);
+
+        // 1. 관리자 권한 보유 여부 확인 (ROLE_ADMIN 체크)
+        boolean isAdmin = currentUser.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
+        // 2. 작성자 본인 확인
+        boolean isAuthor = diary.getUser() != null && diary.getUser().getId().equals(currentUser.getId());
+
+        // 3. 본인도 아니고 관리자도 아니면 삭제 금지
+        if (!isAuthor && !isAdmin) {
+            return "redirect:/diary/listDiary";
+        }
+
+        diaryService.removeDiary(targetId);
         return "redirect:/diary/listDiary";
     }
 }

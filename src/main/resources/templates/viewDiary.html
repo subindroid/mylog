@@ -5,15 +5,16 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
+
     <!-- Spring Security CSRF Meta Tags -->
-    <meta name="_csrf" th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
 
     <title>LogLive - 다이어리 상세</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/viewDiary.css}">
-    
+
     <!-- 외부 JS 파일 불러오기 -->
     <script th:src="@{/js/viewDiary.js}" defer></script>
 </head>
@@ -63,18 +64,29 @@
             </div>
 
             <th:block th:with="currentUsername=${#authentication.name}">
-                <!-- 작성자 본인 제어 버튼 -->
-                <div class="btn-group" id="tr_btn" th:if="${diary.user != null and diary.user.username == currentUsername}">
-                    <button type="button" class="btn btn-primary" id="btn_enable">수정</button>
-                    <button type="button" class="btn btn-danger" id="btn_remove" 
-                            th:data-url="@{/diary/remove}" th:data-id="${diary.id}">삭제</button>
+
+                <!-- 1. 작성자 본인이거나 관리자(ROLE_ADMIN) 권한이 있는 경우 -->
+                <div class="btn-group" id="tr_btn"
+                    th:if="${(diary.user != null and diary.user.username == currentUsername) or #authorization.expression('hasRole(''ADMIN'')')}">
+
+                    <!-- 수정 버튼: 작성자 본인일 때만 노출 (관리자라도 남의 글 수정은 방지) -->
+                    <button type="button" class="btn btn-primary" id="btn_enable"
+                        th:if="${diary.user != null and diary.user.username == currentUsername}">수정</button>
+
+                    <!-- 삭제 버튼: 작성자 본인 OR 관리자 모두 노출 -->
+                    <button type="button" class="btn btn-danger" id="btn_remove" th:data-url="@{/diary/remove}"
+                        th:data-id="${diary.id}">삭제</button>
+
+                    <!-- 목록보기 버튼 -->
                     <button type="button" class="btn btn-secondary btn-list">목록보기</button>
                 </div>
 
-                <!-- 타인 조회 시 버튼 -->
-                <div class="btn-group" th:unless="${diary.user != null and diary.user.username == currentUsername}">
+                <!-- 2. 타인이면서 관리자 권한도 없는 일반 방문자의 경우 -->
+                <div class="btn-group"
+                    th:unless="${(diary.user != null and diary.user.username == currentUsername) or #authorization.expression('hasRole(''ADMIN'')')}">
                     <button type="button" class="btn btn-secondary btn-list">목록보기</button>
                 </div>
+
             </th:block>
 
             <!-- 수정용 버튼 -->
