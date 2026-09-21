@@ -57,44 +57,46 @@ public class DiaryController {
         return "writeDiary"; // writeDiary.html 리턴
     }
 
-    // 글쓰기 저장 처리 (POST)
-    @PostMapping("/add")
-    public String addDiary(@RequestParam String title,
-            @RequestParam String content,
-            @RequestParam(required = false) Long venueId,
-            @RequestParam(required = false) String customVenue, // 직접 입력된 공연장 이름
-            @AuthenticationPrincipal User currentUser,
-            @RequestParam(required = false) Long eventId) {
-        if (currentUser == null) {
-            return "redirect:/diary/login";
-        }
-
-        Diary diary = new Diary();
-        diary.setTitle(title);
-        diary.setContent(content);
-        diary.setUser(currentUser);
-        // 1. 지도 마커로 회장을 선택한 경우
-        if (venueId != null) {
-            Venue venue = venueRepository.findById(venueId).orElse(null);
-            // diary.setVenue(venue);
-        }
-        // 2. 직접 입력한 경우
-        else if (customVenue != null && !customVenue.trim().isEmpty()) {
-            // Diary 엔티티에 customVenue 혹은 location 필드가 있다면 거기 세팅
-            // diary.setCustomLocation(customVenue);
-        }
-
-        // 3. 라이브 이벤트를 선택한 경우 (Event 엔티티 연관관계 매핑)
-        if (eventId != null) {
-            Event event = eventRepository.findById(eventId).orElse(null);
-            if (event != null) {
-                diary.setEvent(event); // Diary 엔티티의 event 필드에 세팅[cite: 1]
-            }
-        }
-
-        diaryService.addDiary(diary);
-        return "redirect:/diary/listDiary";
+// 글쓰기 저장 처리 (POST)
+@PostMapping("/add")
+public String addDiary(@RequestParam String title,
+                       @RequestParam String content,
+                       @RequestParam(required = false) Long venueId,
+                       @RequestParam(required = false) String customVenue, // 직접 입력된 공연장 이름
+                       @AuthenticationPrincipal User currentUser,
+                       @RequestParam(required = false) Long eventId) {
+    if (currentUser == null) {
+        return "redirect:/diary/login";
     }
+
+    Diary diary = new Diary();
+    diary.setTitle(title);
+    diary.setContent(content);
+    diary.setUser(currentUser);
+
+    // 1. 지도 마커로 공식 회장을 선택한 경우 (venue_id FK 저장)
+    if (venueId != null) {
+        Venue venue = venueRepository.findById(venueId).orElse(null);
+        diary.setVenue(venue); // ★ 주석 해제 및 엔티티 세팅
+        diary.setCustomVenue(null); // 지도 마커 선택 시 직접입력 값은 null 처리
+    } 
+    // 2. 지도 마커에 없어서 직접 입력한 경우 (venue_id는 null, customVenue에만 텍스트 저장)
+    else if (customVenue != null && !customVenue.trim().isEmpty()) {
+        diary.setVenue(null); // ★ venue_id는 NULL로 명시적 처리
+        diary.setCustomVenue(customVenue.trim()); // ★ 직접 입력한 텍스트 세팅
+    }
+
+    // 3. 라이브 이벤트를 선택한 경우 (Event 엔티티 연관관계 매핑)
+    if (eventId != null) {
+        Event event = eventRepository.findById(eventId).orElse(null);
+        if (event != null) {
+            diary.setEvent(event);
+        }
+    }
+
+    diaryService.addDiary(diary);
+    return "redirect:/diary/listDiary";
+}
 
     // 수정 처리 (본인 검증)
     @PostMapping("/edit")

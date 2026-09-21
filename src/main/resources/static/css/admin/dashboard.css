@@ -1,0 +1,152 @@
+:root {
+    --bg-base: #120e24;
+    --bg-card: rgba(26, 22, 48, 0.85);
+    --purple-main: #9d4edd;
+    --purple-light: #c77dff;
+    --pink-accent: #ff007f;
+    --teal-accent: #00f5d4;
+    --text-main: #f8f9fa;
+    --text-sub: #b8c0e0;
+    --border-color: rgba(157, 78, 221, 0.3);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Noto Sans KR', sans-serif;
+}
+
+body {
+    background-color: var(--bg-base);
+    color: var(--text-main);
+    padding: 30px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.header h1 {
+    font-size: 24px;
+}
+
+.header h1 span {
+    color: var(--pink-accent);
+}
+
+.btn-home {
+    color: var(--text-sub);
+    text-decoration: none;
+    padding: 8px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+/* 4칸 그리드 레이아웃 */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--purple-light);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+}
+
+th {
+    color: var(--text-sub);
+    padding: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+td {
+    padding: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 11px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-danger {
+    background: rgba(255, 0, 127, 0.3);
+    color: #ff85c0;
+    border: 1px solid var(--pink-accent);
+}
+
+.btn-primary {
+    background: var(--purple-main);
+    color: white;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-sub);
+}
+
+.badge {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.badge-admin {
+    background: var(--pink-accent);
+    color: white;
+}
+
+.badge-user {
+    background: var(--purple-main);
+    color: white;
+}
+
+.form-inline {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+}
+
+select,
+input[type="text"] {
+    background: rgba(18, 14, 36, 0.8);
+    border: 1px solid var(--border-color);
+    color: white;
+    padding: 4px 6px;
+    border-radius: 6px;
+    font-size: 12px;
+}

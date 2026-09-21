@@ -45,11 +45,22 @@
             <div class="info-grid">
                 <div class="form-group">
                     <label>이벤트 명</label>
-                    <input type="text" th:value="${diary.event?.name}" disabled />
+                    <input type="text" th:value="${diary.event != null ? diary.event.name : '개별 방문 (이벤트 없음)'}"
+                        disabled />
                 </div>
+
                 <div class="form-group">
                     <label>공연장 (회장)</label>
-                    <input type="text" th:value="${diary.event?.venue?.name}" disabled />
+                    <!-- 
+           우선순위 조건 처리:
+           1. diary.venue (마커 선택된 공식 회장)가 있으면 해당 회장 이름
+           2. diary.customVenue (직접 입력한 텍스트)가 있으면 그 텍스트
+           3. diary.event.venue (선택된 이벤트에 묶여있는 회장)가 있으면 그 회장 이름
+           4. 셋 다 없으면 '장소 미지정' 출력
+        -->
+                    <input type="text"
+                        th:value="${diary.venue != null ? diary.venue.name : (diary.customVenue != null and !#strings.isEmpty(diary.customVenue) ? diary.customVenue : (diary.event?.venue != null ? diary.event.venue.name : '장소 미지정'))}"
+                        disabled />
                 </div>
             </div>
 

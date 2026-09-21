@@ -17,10 +17,12 @@ import com.marumiru.mylog.service.UserDetailsService;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private final CustomLoginSuccessHandler customLoginSuccessHandler;
     private final UserDetailsService userDetailsService;
 
-    public SecurityConfig(UserDetailsService userDetailsService) {
+    public SecurityConfig(UserDetailsService userDetailsService, CustomLoginSuccessHandler customLoginSuccessHandler) {
         this.userDetailsService = userDetailsService;
+        this.customLoginSuccessHandler = customLoginSuccessHandler;
     }
 
     private static final String[] PERMIT_ALL_PATTERNS = {
@@ -58,7 +60,8 @@ public class SecurityConfig {
                 .formLogin(frm -> frm
                         .loginPage("/diary/login")
                         .loginProcessingUrl("/diary/login") // POST 로그인 처리 URL 명시
-                        .defaultSuccessUrl("/diary/listDiary", true))
+                        .successHandler(customLoginSuccessHandler)
+                        .permitAll())
 
                 .logout(logout -> logout
                         .logoutUrl("/diary/logout")

@@ -40,12 +40,15 @@ public class User implements UserDetails {
     private String password;
 
     @Column(name = "created_at", updatable = false)
-    @CreationTimestamp 
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id") // DB users 테이블의 foreign key 컬럼명
     private Role role;
+
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled = true;
 
     @Builder // 생성자. BoardUser를 Builder 패턴으로 작성
     public User(String username, String password, LocalDateTime createdAt, Role role) {
@@ -97,6 +100,16 @@ public class User implements UserDetails {
     @Override
     // 무조건 true. 따로 로직 구현 X
     public boolean isEnabled() {
-        return true;
+        return this.enabled;
+    }
+
+    // 상태 토글 메서드
+    public void changeEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    // Role 변경 메서드
+    public void updateRole(Role role) {
+        this.role = role;
     }
 }
